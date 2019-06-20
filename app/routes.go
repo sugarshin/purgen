@@ -4,11 +4,11 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"strings"
 	"regexp"
+	"strings"
 
-	"github.com/gin-gonic/gin"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/gin-gonic/gin"
 )
 
 func setupRoutes(engine *gin.Engine) *gin.Engine {
@@ -36,7 +36,7 @@ func handlePurge(c *gin.Context) {
 	res := http.Response{}
 	ch := make(chan http.Response)
 	go MakeRequest(formDataURL, ch)
-	res = <- ch
+	res = <-ch
 	if res.Body == nil {
 		c.HTML(400, "index.tmpl", gin.H{
 			"error": "Server IP address could not be found.",
