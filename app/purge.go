@@ -33,7 +33,7 @@ func purge(imgSrc string, baseURL string) Result {
 		ext := path.Ext(baseURL)
 		if ext != "" {
 			dir, _ := path.Split(baseURL)
-			imgSrcURL = regexp.MustCompile(`/$`).ReplaceAllString(dir, "") + path.Clean(imgSrc)
+			imgSrcURL = regexp.MustCompile(`/$`).ReplaceAllString(dir, "") + "/" + path.Clean(imgSrc)
 		} else {
 			imgSrcURL = regexp.MustCompile(`/$`).ReplaceAllString(baseURL, "") + "/" + path.Clean(imgSrc)
 		}
