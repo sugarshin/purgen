@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
+	"regexp"
 
 	"github.com/gin-gonic/gin"
 	"github.com/PuerkitoBio/goquery"
@@ -55,10 +57,25 @@ func handlePurge(c *gin.Context) {
 
 	results := []Result{}
 	document.Find("img").Each(func(index int, element *goquery.Selection) {
+		imgSources := []string{}
 		imgSrc, exists := element.Attr("src")
 		if exists {
-			ret := purge(imgSrc, formDataURL)
-			results = append(results, ret)
+			imgSources = append(imgSources, imgSrc)
+		}
+
+		srcset, exists := element.Attr("srcset")
+		if exists {
+			srcs := strings.Split(srcset, ",")
+			regex := regexp.MustCompile(`\s+[0-9a-zA-Z]+$`)
+			for i := range srcs {
+				srcs[i] = strings.TrimSpace(srcs[i])
+				srcs[i] = regex.ReplaceAllString(srcs[i], "")
+			}
+			imgSources = append(imgSources, srcs...)
+		}
+
+		for i := range imgSources {
+			results = append(results, purge(imgSources[i], formDataURL))
 		}
 	})
 
