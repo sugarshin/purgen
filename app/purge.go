@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -27,7 +26,7 @@ func purge(imgSrc string, baseURL string) Result {
 			return Result{URL: "", Status: 0}
 		}
 		imgSrcURL = base.ResolveReference(u).String()
-	} else if IsURI(imgSrc) {
+	} else if isURI(imgSrc) {
 		imgSrcURL = imgSrc
 	} else {
 		ext := path.Ext(baseURL)
@@ -39,16 +38,16 @@ func purge(imgSrc string, baseURL string) Result {
 		}
 	}
 
-	client := &http.Client{}
+	client := http.Client{}
 	req, err := http.NewRequest("PURGE", imgSrcURL, nil)
 	if err != nil {
 		log.Fatal(err)
 		return Result{URL: imgSrcURL, Status: 0}
 	}
+
 	res, err := client.Do(req)
-	fmt.Println(res.StatusCode)
 	if err != nil {
-		log.Fatal(res, err)
+		log.Fatal(err)
 		return Result{URL: imgSrcURL, Status: 0}
 	}
 

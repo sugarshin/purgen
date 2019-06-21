@@ -3,11 +3,7 @@ package app
 import (
 	"log"
 	"net/http"
-	"net/url"
-	"regexp"
-	"strings"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/gin-gonic/gin"
 )
 
@@ -25,18 +21,11 @@ func handleIndex(c *gin.Context) {
 
 func handlePurge(c *gin.Context) {
 	formDataURL := c.PostForm("url")
-	_, err := url.ParseRequestURI(formDataURL)
-	if err != nil {
-		c.HTML(400, "index.tmpl", gin.H{
-			"error": "URL must be correct",
-		})
-		return
-	}
 
-	res := http.Response{}
 	ch := make(chan http.Response)
-	go MakeRequest(formDataURL, ch)
-	res = <-ch
+	go makeRequest(formDataURL, ch)
+	res := <-ch
+
 	if res.Body == nil {
 		c.HTML(400, "index.tmpl", gin.H{
 			"error": "Server IP address could not be found.",
@@ -46,38 +35,21 @@ func handlePurge(c *gin.Context) {
 
 	defer res.Body.Close()
 
-	document, err := goquery.NewDocumentFromReader(res.Body)
+	imageSources, err := getImageSourcesFromReader(res.Body)
+
 	if err != nil {
-		log.Fatal("Error loading HTTP response body", err)
-		c.HTML(http.StatusOK, "index.tmpl", gin.H{
-			"error": err,
+		log.Fatal(err)
+		c.HTML(400, "index.tmpl", gin.H{
+			"error": "Can not found image resources.",
 		})
 		return
 	}
 
 	results := []Result{}
-	document.Find("img").Each(func(index int, element *goquery.Selection) {
-		imgSources := []string{}
-		imgSrc, exists := element.Attr("src")
-		if exists {
-			imgSources = append(imgSources, imgSrc)
-		}
 
-		srcset, exists := element.Attr("srcset")
-		if exists {
-			srcs := strings.Split(srcset, ",")
-			regex := regexp.MustCompile(`\s+[0-9a-zA-Z]+$`)
-			for i := range srcs {
-				srcs[i] = strings.TrimSpace(srcs[i])
-				srcs[i] = regex.ReplaceAllString(srcs[i], "")
-			}
-			imgSources = append(imgSources, srcs...)
-		}
-
-		for i := range imgSources {
-			results = append(results, purge(imgSources[i], formDataURL))
-		}
-	})
+	for i := range imageSources {
+		results = append(results, purge(imageSources[i], formDataURL))
+	}
 
 	c.HTML(200, "index.tmpl", gin.H{
 		"results": results,
@@ -85,11 +57,11 @@ func handlePurge(c *gin.Context) {
 }
 
 func handlePing(c *gin.Context) {
-	c.JSON(200, gin.H{"message": "pong"})
+	c.String(200, "pong")
 }
 
 func hanldeNotFound(c *gin.Context) {
-	c.HTML(http.StatusOK, "index.tmpl", gin.H{
+	c.HTML(404, "index.tmpl", gin.H{
 		"title": "404 Not Found | PURGEN",
 		"error": "404 Not Found",
 	})
