@@ -1,7 +1,6 @@
 package app
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -22,14 +21,17 @@ func handleIndex(c *gin.Context) {
 func handlePurge(c *gin.Context) {
 	formDataURL := c.PostForm("url")
 
+	obj := gin.H{
+		"url": formDataURL,
+	}
+
 	ch := make(chan http.Response)
 	go makeRequest(formDataURL, ch)
 	res := <-ch
 
 	if res.Body == nil {
-		c.HTML(400, "index.tmpl", gin.H{
-			"error": "Server IP address could not be found.",
-		})
+		obj["error"] = "Server IP address could not be found."
+		c.HTML(400, "index.tmpl", obj)
 		return
 	}
 
@@ -38,10 +40,14 @@ func handlePurge(c *gin.Context) {
 	imageSources, err := getImageSourcesFromReader(res.Body)
 
 	if err != nil {
-		log.Fatal(err)
-		c.HTML(400, "index.tmpl", gin.H{
-			"error": "Can not found image resources.",
-		})
+		obj["error"] = "Can not found image resources."
+		c.HTML(400, "index.tmpl", obj)
+		return
+	}
+
+	if len(imageSources) == 0 {
+		obj["message"] = "No images."
+		c.HTML(200, "index.tmpl", obj)
 		return
 	}
 
@@ -51,9 +57,8 @@ func handlePurge(c *gin.Context) {
 		results = append(results, purge(imageSources[i], formDataURL))
 	}
 
-	c.HTML(200, "index.tmpl", gin.H{
-		"results": results,
-	})
+	obj["results"] = results
+	c.HTML(200, "index.tmpl", obj)
 }
 
 func handlePing(c *gin.Context) {
@@ -62,7 +67,7 @@ func handlePing(c *gin.Context) {
 
 func hanldeNotFound(c *gin.Context) {
 	c.HTML(404, "index.tmpl", gin.H{
-		"title": "404 Not Found | PURGEN",
-		"error": "404 Not Found",
+		"title":    "404 Not Found | PURGEN",
+		"notfound": true,
 	})
 }

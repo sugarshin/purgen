@@ -7,28 +7,40 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
   </head>
   <body>
-    <div class="container">
-      <h1>PURGEN</h1>
-      {{if .error}}
-      {{.error}}
-      {{else}}
-      <form action="/purge" method="post" class="text-center">
-        <div class="form-group">
-          <input type="text" class="form-control" placeholder="https://example.com" name="url" />
+    <div>
+      <div class="navbar navbar-dark bg-dark shadow-sm justify-content-between">
+        <div class="container">
+          <h1><a href="/" class="navbar-brand">PURGEN</a></h1>
         </div>
-        <div class="form-group">
-          <button type="submit" class="btn btn-primary">PURGE</button>
-        </div>
-      </form>
-      {{end}}
-      {{if .results}}
-      <p>Successfully</p>
-      <ul>
-        {{range .results}}
-        <li>{{.Status}}: {{.URL}}</li>
+      </div>
+      <div class="container mt-5">
+        {{if .error}}
+        <div class="alert alert-danger">{{.error}}</div>
         {{end}}
-      </ul>
-      {{end}}
+        {{if .notfound}}
+          <p>404 not found</p>
+        {{else}}
+          <form action="/purge" method="post" class="text-center">
+            <div class="form-group">
+              <input type="text" class="form-control" placeholder="https://example.com" name="url" value="{{ .url }}" />
+            </div>
+            <div class="form-group">
+              <button type="submit" class="btn btn-primary">PURGE</button>
+            </div>
+          </form>
+          {{if .message}}
+            <p>{{.message}}</p>
+          {{end}}
+          {{if .results}}
+          <p>Executed successfully</p>
+          <ul>
+            {{range .results}}
+            <li><code>{{.Status}}</code>: <a href="{{.URL}}" target="_blank" style="overflow-wrap: break-word;">{{.URL}}</a></li>
+            {{end}}
+          </ul>
+          {{end}}
+        {{end}}
+      </div>
     </div>
   </body>
 </html>
