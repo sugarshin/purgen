@@ -1,0 +1,40 @@
+version: 2.1
+
+executors:
+  golang:
+    docker:
+      - image: circleci/golang:1.12.6
+    working_directory: /go/src/github.com/sugarshin/purgen
+    environment:
+      - GO111MODULE: "on"
+
+jobs:
+  test_lint:
+    executor: golang
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore go modules cache
+          key: go-modules-cache-v1-{{ checksum "go.sum" }}
+      - run:
+          name: Downloading packages
+          command: go mod download
+      - save_cache:
+          name: Saving go modules cache
+          key: go-modules-cache-v1-{{ checksum "go.sum" }}
+          paths:
+            - /go/pkg/mod/cache
+      - run:
+          name: Test and Lint
+          command: |
+            go test -race -v ./...
+            go vet ./...
+            # TODO:
+            # go fmt ./...
+            # git diff --name-only | grep "**.go$" | xargs git diff --exit-code --quiet --
+            # if [ $? -eq 0 ]; then echo "ok"; else echo "git diff error"; exit 1; fi
+
+workflows:
+  test_and_lint:
+    jobs:
+      - test_lint
