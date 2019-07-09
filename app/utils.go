@@ -10,8 +10,17 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-func makeRequest(url string, ch chan<- http.Response) {
+func makeGetRequest(url string, ch chan<- http.Response) {
 	res, err := http.Get(url)
+	if err != nil {
+		ch <- http.Response{}
+	} else {
+		ch <- *res
+	}
+}
+
+func makeClientRequest(client *http.Client, req *http.Request, ch chan<- http.Response) {
+	res, err := client.Do(req)
 	if err != nil {
 		ch <- http.Response{}
 	} else {

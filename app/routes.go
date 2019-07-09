@@ -25,8 +25,20 @@ func handlePurge(c *gin.Context) {
 		"url": formDataURL,
 	}
 
+	// req, err := http.NewRequest("GET", formDataURL, nil)
+
+	// if err != nil {
+	// 	obj["error"] = "InternalServerError"
+	// 	c.HTML(400, "index.tmpl", obj)
+	// 	return
+	// }
+
+	// client := &http.Client{
+	// 	Timeout: time.Duration(10 * time.Second),
+	// }
+
 	ch := make(chan http.Response)
-	go makeRequest(formDataURL, ch)
+	go makeGetRequest(formDataURL, ch)
 	res := <-ch
 
 	if res.Body == nil {

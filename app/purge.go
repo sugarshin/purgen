@@ -1,11 +1,11 @@
 package app
 
 import (
-	"log"
 	"net/http"
 	"net/url"
 	"path"
 	"regexp"
+	"time"
 )
 
 // Result : Purge result
@@ -38,18 +38,19 @@ func purge(resource string, baseURL string) Result {
 		}
 	}
 
-	client := http.Client{}
 	req, err := http.NewRequest("PURGE", resourceURL, nil)
+
 	if err != nil {
-		log.Fatal(err)
 		return Result{URL: resourceURL, Status: 0}
 	}
 
-	res, err := client.Do(req)
-	if err != nil {
-		log.Fatal(err)
-		return Result{URL: resourceURL, Status: 0}
+	client := &http.Client{
+		Timeout: time.Duration(5 * time.Second),
 	}
+
+	ch := make(chan http.Response)
+	go makeClientRequest(client, req, ch)
+	res := <-ch
 
 	return Result{URL: resourceURL, Status: res.StatusCode}
 }
