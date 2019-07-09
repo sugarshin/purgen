@@ -37,24 +37,24 @@ func handlePurge(c *gin.Context) {
 
 	defer res.Body.Close()
 
-	imageSources, err := getImageSourcesFromReader(res.Body)
+	resources, err := getResourcesFromReader(res.Body)
 
 	if err != nil {
-		obj["error"] = "Can not found image resources."
+		obj["error"] = "Can not found resources."
 		c.HTML(400, "index.tmpl", obj)
 		return
 	}
 
-	if len(imageSources) == 0 {
-		obj["message"] = "No images."
+	if len(resources) == 0 {
+		obj["message"] = "No resources."
 		c.HTML(200, "index.tmpl", obj)
 		return
 	}
 
 	results := []Result{}
 
-	for i := range imageSources {
-		results = append(results, purge(imageSources[i], formDataURL))
+	for i := range resources {
+		results = append(results, purge(resources[i], formDataURL))
 	}
 
 	obj["results"] = results
