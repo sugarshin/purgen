@@ -8,9 +8,9 @@ https://purgen.herokuapp.com
 
 ## What
 
-Do HTTP Request to HTML sub-resources with `PURGE` method.
+Do HTTP request to sub-resources of HTML by `PURGE` method.
 
-Currently, only images are targets.
+Supports `src` of `<script>`, `href` of `<link>`, and `src`, `srcset` of `<img>`.
 
 ## License
 
