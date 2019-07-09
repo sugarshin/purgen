@@ -27,19 +27,24 @@ func isURI(pathname string) bool {
 	return true
 }
 
-func getImageSourcesFromReader(body io.Reader) ([]string, error) {
+func getResourcesFromReader(body io.Reader) ([]string, error) {
 	document, err := goquery.NewDocumentFromReader(body)
 
 	if err != nil {
 		return nil, err
 	}
 
-	imageSources := []string{}
+	resources := []string{}
 
-	document.Find("img").Each(func(index int, element *goquery.Selection) {
-		imgSrc, exists := element.Attr("src")
+	document.Find("img, script, link").Each(func(index int, element *goquery.Selection) {
+		src, exists := element.Attr("src")
 		if exists {
-			imageSources = append(imageSources, imgSrc)
+			resources = append(resources, src)
+		}
+
+		href, exists := element.Attr("href")
+		if exists {
+			resources = append(resources, href)
 		}
 
 		srcset, exists := element.Attr("srcset")
@@ -50,9 +55,9 @@ func getImageSourcesFromReader(body io.Reader) ([]string, error) {
 				srcs[i] = strings.TrimSpace(srcs[i])
 				srcs[i] = regex.ReplaceAllString(srcs[i], "")
 			}
-			imageSources = append(imageSources, srcs...)
+			resources = append(resources, srcs...)
 		}
 	})
 
-	return imageSources, nil
+	return resources, nil
 }
