@@ -1,0 +1,36 @@
+name: CI
+on:
+  push:
+    branches:
+      - '*'
+      - '*/*'
+      - '!master'
+jobs:
+  test-lint-build:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/setup-go@v1
+        with:
+          go-version: 1.12.6
+        id: go
+      - uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+      - name: Downloading packages
+        run: go mod download
+        env:
+          GO111MODULE: "on"
+      - name: Test and Lint
+        run: |
+          go test -race -v ./...
+          go vet ./...
+          # TODO:
+          # go fmt ./...
+          # git diff --name-only | grep "**.go$" | xargs git diff --exit-code --quiet --
+          # if [ $? -eq 0 ]; then echo "ok"; else echo "git diff error"; exit 1; fi
+      - name: Build
+        run: go build -o bin/purgen .
+      - uses: actions/upload-artifact@v1
+        with:
+          name: purgen
+          path: bin/purgen
